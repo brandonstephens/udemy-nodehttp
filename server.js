@@ -8,13 +8,7 @@ const todos = [
 ]
 
 const server = http.createServer((request, response) => {
-  // response.statusCode = 200
-  // response.setHeader('Content-Type', 'application/json')
-  // response.setHeader('x-powered-by', 'Node.js')
-  response.writeHead(200, {
-    'Content-Type': 'application/json',
-    'x-powered-by': 'Node.js',
-  })
+  const { method, url } = request
 
   let body = []
   request
@@ -23,13 +17,41 @@ const server = http.createServer((request, response) => {
     })
     .on('end', () => {
       body = Buffer.concat(body).toString()
-      console.log(body)
+
+      // 404 by default
+      let statusCode = 404
+      const responseObject = {
+        success: false,
+        data: null,
+        error: null,
+      }
+
+      if (method === 'GET' && url === '/todos') {
+        statusCode = 200
+        responseObject.success = true
+        responseObject.data = todos
+      } else if (method === 'POST' && url === '/todos') {
+        const { id, text } = JSON.parse(body)
+
+        if (!id || !text) {
+          // bad request
+          statusCode = 400
+          responseObject.error = 'missing id or text'
+        } else {
+          statusCode = 201
+          todos.push({ id, text })
+          responseObject.success = true
+          responseObject.data = todos
+        }
+      }
+
+      response.writeHead(statusCode, {
+        'Content-Type': 'application/json',
+        'x-powered-by': 'Node.js',
+      })
+
+      response.end(JSON.stringify(responseObject))
     })
-
-  console.log(request.headers.authorization)
-
-  // response.write(JSON.stringify(todos))
-  response.end(JSON.stringify({ success: true, data: todos }))
 })
 
 const PORT = 5000
