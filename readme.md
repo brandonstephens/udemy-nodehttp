@@ -7,4 +7,5 @@ Chapters 1 -10
 ## Setup
 
 1. `nvm use`
-2. `npm start`
+2. `npm install`
+3. `npm start`
